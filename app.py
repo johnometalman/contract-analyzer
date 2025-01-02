@@ -9,7 +9,7 @@ if not api_key:
     raise ValueError("Please set the ANTHROPIC_API_KEY environment variable")
 
 # Initialize the Anthropic client with the correct syntax
-client = Anthropic(api_key=api_key)
+client = anthropic(api_key=api_key)
 
 
 # Custom system prompt for contract analysis
