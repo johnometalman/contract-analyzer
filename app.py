@@ -3,8 +3,14 @@ import anthropic
 import os
 from typing import List, Tuple
 
-# Initialize the Anthropic client
-client = anthropic.Client(os.getenv("ANTHROPIC_API_KEY"))
+# Check for API key and initialize the Anthropic client
+api_key = os.getenv("ANTHROPIC_API_KEY")
+if not api_key:
+    raise ValueError("Please set the ANTHROPIC_API_KEY environment variable")
+
+# Initialize the Anthropic client with the correct syntax
+client = Anthropic(api_key=api_key)
+
 
 # Custom system prompt for contract analysis
 SYSTEM_PROMPT = """Hola, quiero que me ayudes a evaluar un contrato y determinar si es favorable para mi o si tengo alguna desventaja. Una vez cargado el contrato, por favor necesito que:
