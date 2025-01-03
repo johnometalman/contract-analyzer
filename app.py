@@ -1,36 +1,69 @@
 import streamlit as st
-from PDFHandler import extract_text_from_pdf, generate_contract_analysis
+from PDFHandler import PDFHandler
+from dotenv import load_dotenv
 
-# Streamlit app layout
-st.title("Contract Chatbot")
-
-st.write("""
-    Upload a contract in PDF format and choose a language for the analysis and translation.
-    The bot will analyze and provide key insights from the contract in either English or Spanish.
-""")
-
-# File upload
-pdf_file = st.file_uploader("Upload a Contract (PDF)", type=["pdf"])
-
-if pdf_file is not None:
-    # Extract text from the PDF
-    contract_text = extract_text_from_pdf(pdf_file)
-
-    # Display extracted text (optional)
-    st.subheader("Extracted Contract Text:")
-    st.text_area("Contract Text", contract_text, height=200)
-
+def main():
+    # Load environment variables
+    load_dotenv()
+    
+    # Initialize PDFHandler
+    pdf_handler = PDFHandler()
+    
+    # Set page configuration
+    st.set_page_config(
+        page_title="Contract Analysis Chatbot",
+        page_icon="📄",
+        layout="wide"
+    )
+    
+    # Header
+    st.title("Contract Analysis Chatbot")
+    st.markdown("Upload a contract (PDF) or paste text for analysis")
+    
     # Language selection
-    language = st.selectbox("Select Output Language", ["English", "Spanish"])
+    language = st.selectbox(
+        "Select response language",
+        ["English", "Spanish"],
+        index=0
+    )
+    
+    # Input method selection
+    input_method = st.radio(
+        "Choose input method:",
+        ["Upload PDF", "Paste Text"]
+    )
+    
+    analysis_result = None
+    
+    if input_method == "Upload PDF":
+        uploaded_file = st.file_uploader("Upload your contract (PDF)", type=['pdf'])
+        
+        if uploaded_file is not None:
+            with st.spinner('Extracting text from PDF...'):
+                contract_text = pdf_handler.extract_text_from_pdf(uploaded_file)
+                st.text_area("Extracted Text", contract_text, height=200)
+                
+            if st.button("Analyze Contract"):
+                with st.spinner('Analyzing contract...'):
+                    analysis_result = pdf_handler.analyze_contract(
+                        contract_text,
+                        language.lower()
+                    )
+    
+    else:  # Paste Text option
+        contract_text = st.text_area("Paste your contract text here:", height=300)
+        
+        if st.button("Analyze Text"):
+            with st.spinner('Analyzing text...'):
+                analysis_result = pdf_handler.process_text_input(
+                    contract_text,
+                    language.lower()
+                )
+    
+    # Display results
+    if analysis_result:
+        st.markdown("### Analysis Results")
+        st.markdown(analysis_result)
 
-    # Analyze the contract
-    if st.button("Analyze Contract"):
-        # Adjust language for output
-        language_code = 'es' if language == 'Spanish' else 'en'
-
-        # Generate analysis
-        analysis = generate_contract_analysis(contract_text, language_code)
-
-        # Display contract analysis
-        st.subheader(f"Contract Analysis in {language}:")
-        st.write(analysis)
+if __name__ == "__main__":
+    main()
