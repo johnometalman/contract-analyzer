@@ -43,7 +43,7 @@ class PDFHandler:
         
         try:
             message = self.client.messages.create(
-                model="claude-3-opus-20240229",
+                model="claude-3-haiku-20240307",
                 max_tokens=4096,
                 system=f"{self.system_prompt}\n{lang_instruction}",  # System prompt as separate parameter
                 messages=[
