@@ -4,14 +4,15 @@ from PDFHandler import PDFHandler
 def main():
     # Set page configuration
     st.set_page_config(
-        page_title="Contract Analysis App",
+        page_title="Contract Analyzer App",
         page_icon="📄",
         layout="wide"
     )
     
     # Header
-    st.title("Contract Analysis App")
-    st.subheader('Made with love by Johnometalman')
+    st.title("Contract Analyzer App")
+    st.write('##### Made with love by Johnometalman')
+    st.divider()
     
     # Sidebar for configurations
     st.sidebar.header("Configuration.. if you want")
@@ -65,7 +66,6 @@ def main():
     - Sonnet: Medium cost (≈1/2 of Opus)
     - Opus: Highest cost
     
-    *Note: Actual costs depend on token usage*
     """)
     
     analysis_result = None
