@@ -4,16 +4,17 @@ from PDFHandler import PDFHandler
 def main():
     # Set page configuration
     st.set_page_config(
-        page_title="Contract Analysis Chatbot",
+        page_title="Contract Analysis App",
         page_icon="📄",
         layout="wide"
     )
     
     # Header
-    st.title("Contract Analysis Chatbot")
+    st.title("Contract Analysis App")
+    st.subheader('Made with love by Johnometalman')
     
     # Sidebar for configurations
-    st.sidebar.header("Configuration")
+    st.sidebar.header("Configuration.. if you want")
     
     # Model selection
     model_option = st.sidebar.selectbox(
