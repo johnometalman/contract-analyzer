@@ -1,5 +1,21 @@
 import streamlit as st
+import os
 from PDFHandler import PDFHandler
+
+# Function to read the counter
+def read_counter():
+    if os.path.exists("counter.txt"):
+        with open("counter.txt", "r") as f:
+            return int(f.read())
+    else:
+        return 0
+
+# Function to update the counter
+def update_counter():
+    current_count = read_counter() + 1
+    with open("counter.txt", "w") as f:
+        f.write(str(current_count))
+    return current_count
 
 def main():
     # Set page configuration
@@ -11,7 +27,8 @@ def main():
     
     # Header
     st.title("Contract Analyzer App")
-    st.write('##### Made with love by Johnometalman')
+    st.write('###### Made with love by Johnometalman')
+    st.text('In the left pannel you can see more options')
     st.divider()
     
     # Sidebar for configurations
@@ -65,8 +82,22 @@ def main():
     - Haiku: Lowest cost (≈1/10 of Opus)
     - Sonnet: Medium cost (≈1/2 of Opus)
     - Opus: Highest cost
+    _____
+    
+    
     
     """)
+    
+    
+    st.sidebar.markdown(""" 
+    #### Disclaimer
+    - This app is trained with general information about contracts
+    - Use this tool as a recomendation and **not as a legal advisor**
+    """)
+    
+    # Display current app usage count
+    current_count = read_counter()
+    st.write(f"App has been used **{current_count}** times.")
     
     analysis_result = None
     
@@ -84,6 +115,10 @@ def main():
                         contract_text,
                         language.lower()
                     )
+                
+                # Update app usage counter when analyzing a contract
+                new_count = update_counter()
+                st.success(f"Contract analyzed! Total app usage: {new_count}")
     
     else:  # Paste Text option
         contract_text = st.text_area(
@@ -98,6 +133,10 @@ def main():
                     contract_text,
                     language.lower()
                 )
+            
+            # Update app usage counter when analyzing text
+            new_count = update_counter()
+            st.success(f"Text analyzed! Total app usage: {new_count}")
     
     # Display results
     if analysis_result:
