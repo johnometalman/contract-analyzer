@@ -1,11 +1,7 @@
 import streamlit as st
 from PDFHandler import PDFHandler
-from dotenv import load_dotenv
 
 def main():
-    # Load environment variables
-    load_dotenv()
-    
     # Initialize PDFHandler
     pdf_handler = PDFHandler()
     

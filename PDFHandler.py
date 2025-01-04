@@ -2,23 +2,15 @@ import PyPDF2
 import io
 from typing import List, Optional
 import anthropic
-import os
-from dotenv import load_dotenv
-from pathlib import Path
+import streamlit as st
 
 class PDFHandler:
     def __init__(self):
-        # Ensure we're loading from the correct directory
-        env_path = Path('.env')
-        load_dotenv(dotenv_path=env_path)
-        
-        api_key = os.getenv('ANTHROPIC_API_KEY')
-        if not api_key:
-            raise ValueError("API key not found. Please ensure your .env file contains ANTHROPIC_API_KEY")
-        
-        # Initialize the client with the working API key
-        self.client = anthropic.Client(api_key=api_key)
-        self.system_prompt = os.getenv('SYSTEM_PROMPT', """
+        # Use Streamlit secrets for API key
+        self.client = anthropic.Client(
+            api_key=st.secrets["ANTHROPIC_API_KEY"]
+        )
+        self.system_prompt = st.secrets.get("SYSTEM_PROMPT", """
             You are a contract analysis expert. Analyze the provided contract and provide the following information:
             1. Contract Type and Purpose
             2. Key Terms and Conditions

@@ -1,3 +1,5 @@
 venv/
 .env
 test_api.py
+secrets.toml
+__pycache__/
