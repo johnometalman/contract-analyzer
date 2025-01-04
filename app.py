@@ -27,7 +27,7 @@ def main():
     
     # Header
     st.title("Contract Analyzer App")
-    st.write('###### Made with love by Johnometalman')
+    st.write('###### Made with love by [Johnometalman](https://www.johnometalman.me/)')
     st.text('In the left pannel you can see more options')
     st.divider()
     
