@@ -45,11 +45,8 @@ class PDFHandler:
             message = self.client.messages.create(
                 model="claude-3-opus-20240229",
                 max_tokens=4096,
+                system=f"{self.system_prompt}\n{lang_instruction}",  # System prompt as separate parameter
                 messages=[
-                    {
-                        "role": "system",
-                        "content": f"{self.system_prompt}\n{lang_instruction}"
-                    },
                     {
                         "role": "user",
                         "content": text
