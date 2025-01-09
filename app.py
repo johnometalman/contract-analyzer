@@ -28,7 +28,25 @@ def main():
     # Header
     st.title("Contract Analyzer App")
     st.write('###### Made with love by [Johnometalman](https://www.johnometalman.me/)')
-    st.text('In the left pannel you can see more options')
+    st.divider()
+
+    st.markdown(
+    """
+    ##### Instructions of Use
+    1. Upload the contract in PDF or Text
+    2. Select the language you want for your response
+    3. In the left panel, select the AI model you want
+    4. Choose the number of tokens you want
+    5. Select Analyze Contract
+
+    This application is completely free to use, so you don't need to worry about tokens.<br>
+    Additionally, the data you upload **IS NOT USED** to train any other models.<br><br>
+    The cache is cleared once you stop using the app.
+    """, unsafe_allow_html=True
+)
+
+    
+
     st.divider()
     
     # Sidebar for configurations
@@ -61,7 +79,7 @@ def main():
     pdf_handler = PDFHandler(model_name=model_name, max_tokens=max_tokens)
     
     # Main content
-    st.markdown("Upload a contract (PDF) or paste text for analysis")
+    st.markdown("**Upload a contract (PDF) or paste text for analysis**")
     
     # Language selection
     language = st.selectbox(
@@ -89,11 +107,11 @@ def main():
     """)
     
     
-    st.sidebar.markdown(""" 
+    st.sidebar.markdown("""
     #### Disclaimer
-    - This app is trained with general information about contracts
-    - Use this tool as a recomendation and **not as a legal advisor**
-    """)
+    - This app is trained with general information about contracts.
+    - Use this tool as a recommendation and **not as a legal advisor**.
+""")
     
     # Display current app usage count
     current_count = read_counter()
