@@ -43,14 +43,18 @@ def main():
     Additionally, the data you upload **IS NOT USED** to train any other models.<br><br>
     The cache is cleared once you stop using the app.
     """, unsafe_allow_html=True
-)
-
-    
+    )
 
     st.divider()
     
     # Sidebar for configurations
     st.sidebar.header("Configuration.. if you want")
+    
+    # Add a button to clear cache
+    if st.sidebar.button("Clear Cache"):
+        st.cache_data.clear()  # Clear all cached data
+        st.cache_resource.clear()  # Clear all cached resources
+        st.sidebar.success("Cache cleared successfully!")
     
     # Model selection
     model_option = st.sidebar.selectbox(
@@ -101,17 +105,13 @@ def main():
     - Sonnet: Medium cost (≈1/2 of Opus)
     - Opus: Highest cost
     _____
-    
-    
-    
     """)
-    
     
     st.sidebar.markdown("""
     #### Disclaimer
     - This app is trained with general information about contracts.
     - Use this tool as a recommendation and **not as a legal advisor**.
-""")
+    """)
     
     # Display current app usage count
     current_count = read_counter()
@@ -162,7 +162,7 @@ def main():
         st.markdown(analysis_result)
         
         # Show token usage warning if text is long
-        if len(contract_text) > 10000:
+        if len(contract_text) > 20000:
             st.warning("⚠️ Long text detected. Analysis was performed on first portion to optimize costs.")
 
 if __name__ == "__main__":
