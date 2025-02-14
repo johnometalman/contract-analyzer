@@ -17,7 +17,7 @@ class PDFHandler:
         self.model_name = model_name
         self.max_tokens = max_tokens
 
-    def preprocess_text(self, text: str, max_length: int = 10000) -> str:
+    def preprocess_text(self, text: str, max_length: int = 30000) -> str:
         """Preprocess text to reduce token consumption."""
         # Remove extra whitespace and newlines
         text = ' '.join(text.split())
