@@ -41,7 +41,7 @@ def main():
 
     This application is completely free to use, so you don't need to worry about tokens.<br>
     Additionally, the data you upload **IS NOT USED** to train any other models.<br><br>
-    The cache is cleared once you stop using the app.
+    The cache is cleared once you stop using the app or clicking the button **Clear Cache**.
     """, unsafe_allow_html=True
     )
 
@@ -113,10 +113,6 @@ def main():
     - Use this tool as a recommendation and **not as a legal advisor**.
     """)
     
-    # Display current app usage count
-    current_count = read_counter()
-    st.write(f"App has been used **{current_count}** times.")
-    
     analysis_result = None
     
     if input_method == "Upload PDF":
@@ -147,7 +143,7 @@ def main():
         
         if st.button("Analyze Text"):
             with st.spinner('Analyzing text...'):
-                analysis_result = pdf_handler.process_text_input(
+                analysis_result = pdf_handler.analyze_contract(
                     contract_text,
                     language.lower()
                 )
@@ -162,7 +158,7 @@ def main():
         st.markdown(analysis_result)
         
         # Show token usage warning if text is long
-        if len(contract_text) > 20000:
+        if len(contract_text) > 100000:
             st.warning("⚠️ Long text detected. Analysis was performed on first portion to optimize costs.")
 
 if __name__ == "__main__":

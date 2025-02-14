@@ -1,3 +1,4 @@
-streamlit 
-anthropic
+streamlit
 PyPDF2
+anthropic
+transformers

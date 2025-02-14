@@ -1,4 +1,10 @@
-import tiktoken  # For token counting
+import PyPDF2
+import io
+from typing import List, Optional
+import anthropic  # Add this import
+import streamlit as st
+import re
+from transformers import GPT2Tokenizer  # If using transformers
 
 class PDFHandler:
     def __init__(self, model_name="claude-3-haiku-20240307", max_tokens=4096):
@@ -11,13 +17,13 @@ class PDFHandler:
         """)
         self.model_name = model_name
         self.max_tokens = max_tokens
-        self.encoding = tiktoken.get_encoding("cl100k_base")  # Tokenizer for Claude models
+        self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")  # If using transformers
 
     def count_tokens(self, text: str) -> int:
         """Count the number of tokens in the text."""
-        return len(self.encoding.encode(text))
+        return len(self.tokenizer.encode(text))
 
-    def preprocess_text(self, text: str, max_tokens: int = 20000) -> str:
+    def preprocess_text(self, text: str, max_tokens: int = 15000) -> str:
         """Preprocess text to ensure it fits within the token limit."""
         # Remove extra whitespace and newlines
         text = ' '.join(text.split())
@@ -32,10 +38,10 @@ class PDFHandler:
         text = re.sub(r'[^\w\s.,;:\-\'\"(){}[\]]+', ' ', text)
         
         # Truncate to max tokens
-        tokens = self.encoding.encode(text)
+        tokens = self.tokenizer.encode(text)
         if len(tokens) > max_tokens:
             tokens = tokens[:max_tokens]
-            text = self.encoding.decode(tokens)
+            text = self.tokenizer.decode(tokens)
         
         return text.strip()
 
