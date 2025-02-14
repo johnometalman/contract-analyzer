@@ -6,7 +6,7 @@ import streamlit as st
 import re
 
 class PDFHandler:
-    def __init__(self, model_name="claude-3-haiku-20240307", max_tokens=1000):
+    def __init__(self, model_name="claude-3-haiku-20240307", max_tokens=20000):
         self.client = anthropic.Client(
             api_key=st.secrets["ANTHROPIC_API_KEY"]
         )
@@ -17,7 +17,7 @@ class PDFHandler:
         self.model_name = model_name
         self.max_tokens = max_tokens
 
-    def preprocess_text(self, text: str, max_length: int = 30000) -> str:
+    def preprocess_text(self, text: str, max_length: int = 20000) -> str:
         """Preprocess text to reduce token consumption."""
         # Remove extra whitespace and newlines
         text = ' '.join(text.split())
