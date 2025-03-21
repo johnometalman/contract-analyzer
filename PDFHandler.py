@@ -1,23 +1,23 @@
 import PyPDF2
 import io
 from typing import List, Optional
-import anthropic  # Add this import
 import streamlit as st
 import re
 from transformers import GPT2Tokenizer  # If using transformers
+from openai import OpenAI  # Import OpenAI SDK for Deepseek
 
 class PDFHandler:
-    def __init__(self, model_name="claude-3-haiku-20240307", max_tokens=4096):
-        self.client = anthropic.Client(
-            api_key=st.secrets["ANTHROPIC_API_KEY"]
+    def __init__(self, model_name="deepseek-reasoner", max_tokens=4096):
+        # Initialize Deepseek client
+        self.client = OpenAI(
+            api_key=st.secrets["DEEPSEEK_API_KEY"],  # Use your Deepseek API key
+            base_url="https://api.deepseek.com"  # Deepseek API base URL
         )
-        self.system_prompt = st.secrets.get("SYSTEM_PROMPT", """
-            Analyze contracts and provide: 1) Type/Purpose 2) Key Terms 3) Dates 
-            4) Obligations 5) Risks 6) Recommendations. Be concise.
-        """)
+        self.system_prompt = st.secrets["SYSTEM_PROMPT"]  # Retrieve prompt from secrets.toml
         self.model_name = model_name
         self.max_tokens = max_tokens
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")  # If using transformers
+        self.max_sequence_length = 1024  # Maximum sequence length for GPT-2 tokenizer
 
     def count_tokens(self, text: str) -> int:
         """Count the number of tokens in the text."""
@@ -37,10 +37,10 @@ class PDFHandler:
         text = re.sub(r'\s+', ' ', text)
         text = re.sub(r'[^\w\s.,;:\-\'\"(){}[\]]+', ' ', text)
         
-        # Truncate to max tokens
+        # Truncate to max tokens (ensure it doesn't exceed the model's max sequence length)
         tokens = self.tokenizer.encode(text)
-        if len(tokens) > max_tokens:
-            tokens = tokens[:max_tokens]
+        if len(tokens) > self.max_sequence_length:
+            tokens = tokens[:self.max_sequence_length]
             text = self.tokenizer.decode(tokens)
         
         return text.strip()
@@ -59,26 +59,37 @@ class PDFHandler:
         except Exception as e:
             raise Exception(f"Error extracting text from PDF: {str(e)}")
 
+    def remove_markdown_formatting(self, text: str) -> str:
+        """Remove Markdown formatting from the text."""
+        # Remove bold formatting (**text**)
+        text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+        # Remove headers (###, ##, #)
+        text = re.sub(r'#+\s*', '', text)
+        # Remove dividers (---)
+        text = re.sub(r'---', '', text)
+        # Remove bullet points and other Markdown symbols
+        text = re.sub(r'-\s*', '', text)
+        return text.strip()
+
     def analyze_contract(self, text: str, language: str = "english") -> str:
-        """Analyze contract text using Claude API with optimized token usage."""
+        """Analyze contract text using Deepseek API."""
         if not text:
             return "No text provided for analysis."
 
         lang_instruction = "Respond in Spanish." if language.lower() == "spanish" else "Respond in English."
         
         try:
-            message = self.client.messages.create(
-                model=self.model_name,
-                max_tokens=self.max_tokens,  # Output token limit
-                system=f"{self.system_prompt}\n{lang_instruction}\nProvide a concise analysis.",
+            response = self.client.chat.completions.create(
+                model=self.model_name,  # Use "deepseek-reasoner"
                 messages=[
-                    {
-                        "role": "user",
-                        "content": self.preprocess_text(text, max_tokens=15000)  # Input token limit
-                    }
-                ]
+                    {"role": "system", "content": f"{self.system_prompt}\n{lang_instruction}"},
+                    {"role": "user", "content": self.preprocess_text(text, max_tokens=15000)}
+                ],
+                max_tokens=self.max_tokens,
+                stream=False
             )
-            
-            return message.content[0].text
+            # Remove Markdown formatting from the response
+            plain_text_response = self.remove_markdown_formatting(response.choices[0].message.content)
+            return plain_text_response
         except Exception as e:
             return f"Error in contract analysis: {str(e)}"

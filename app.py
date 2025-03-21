@@ -1,21 +1,7 @@
 import streamlit as st
 import os
+import time  # Import time for the spinner timer
 from PDFHandler import PDFHandler
-
-# Function to read the counter
-def read_counter():
-    if os.path.exists("counter.txt"):
-        with open("counter.txt", "r") as f:
-            return int(f.read())
-    else:
-        return 0
-
-# Function to update the counter
-def update_counter():
-    current_count = read_counter() + 1
-    with open("counter.txt", "w") as f:
-        f.write(str(current_count))
-    return current_count
 
 def main():
     # Set page configuration
@@ -27,21 +13,20 @@ def main():
     
     # Header
     st.title("Contract Analyzer App")
-    st.write('###### Made with love by [Johnometalman](https://www.johnometalman.me/)')
+    st.write('###### ❤️ Made with love by [Johnometalman](https://www.johnometalman.me/)')
     st.divider()
 
     st.markdown(
     """
     ##### Instructions of Use
     1. Upload the contract in PDF or Text
-    2. Select the language you want for your response
-    3. In the left panel, select the AI model you want
-    4. Choose the number of tokens you want
-    5. Select Analyze Contract
+    2. Choose the number of tokens you want on the left pannel
+    3. Select Analyze Contract
 
     This application is completely free to use, so you don't need to worry about tokens.<br>
-    Additionally, the data you upload **IS NOT USED** to train any other models.<br><br>
-    The cache is cleared once you stop using the app or clicking the button **Clear Cache**.
+    The cache is cleared once you stop using the app or clicking the button **Clear Contract**
+    
+    This is the **2nd version** of this app.
     """, unsafe_allow_html=True
     )
 
@@ -49,26 +34,6 @@ def main():
     
     # Sidebar for configurations
     st.sidebar.header("Configuration.. if you want")
-    
-    # Add a button to clear cache
-    if st.sidebar.button("Clear Cache"):
-        st.cache_data.clear()  # Clear all cached data
-        st.cache_resource.clear()  # Clear all cached resources
-        st.sidebar.success("Cache cleared successfully!")
-    
-    # Model selection
-    model_option = st.sidebar.selectbox(
-        "Select Model (Cost: Low → High)",
-        [
-            "claude-3-haiku-20240307 (Fastest, Lowest Cost)",
-            "claude-3-sonnet-20240229 (Balanced)",
-            "claude-3-opus-20240229 (Most Detailed)"
-        ],
-        index=0
-    )
-    
-    # Extract model name from selection
-    model_name = model_option.split(" ")[0]
     
     # Token limit selection
     max_tokens = st.sidebar.slider(
@@ -80,7 +45,7 @@ def main():
     )
     
     # Initialize PDFHandler with selected configuration
-    pdf_handler = PDFHandler(model_name=model_name, max_tokens=max_tokens)
+    pdf_handler = PDFHandler(max_tokens=max_tokens)
     
     # Main content
     st.markdown("**Upload a contract (PDF) or paste text for analysis**")
@@ -98,68 +63,78 @@ def main():
         ["Upload PDF", "Paste Text"]
     )
     
-    # Cost estimation disclaimer
-    st.sidebar.markdown("""
-    ### Approximate Cost Guide
-    - Haiku: Lowest cost (≈1/10 of Opus)
-    - Sonnet: Medium cost (≈1/2 of Opus)
-    - Opus: Highest cost
-    _____
-    """)
-    
     st.sidebar.markdown("""
     #### Disclaimer
     - This app is trained with general information about contracts.
+                        
+    - The AI Model used is Deepseek Reasoning 
+                        
     - Use this tool as a recommendation and **not as a legal advisor**.
     """)
     
-    analysis_result = None
+    # Initialize session state variables
+    if "uploaded_file" not in st.session_state:
+        st.session_state.uploaded_file = None
+    if "contract_text" not in st.session_state:
+        st.session_state.contract_text = ""
+    if "analysis_result" not in st.session_state:
+        st.session_state.analysis_result = None
     
     if input_method == "Upload PDF":
         uploaded_file = st.file_uploader("Upload your contract (PDF)", type=['pdf'])
         
         if uploaded_file is not None:
-            with st.spinner('Extracting and preprocessing text...'):
+            st.session_state.uploaded_file = uploaded_file  # Save uploaded file to session state
+            with st.spinner('Extracting and preprocessing text...', show_time=True):
                 contract_text = pdf_handler.extract_text_from_pdf(uploaded_file)
+                st.session_state.contract_text = contract_text  # Save extracted text to session state
                 st.text_area("Extracted Text (Preprocessed)", contract_text, height=200)
                 
             if st.button("Analyze Contract"):
-                with st.spinner('Analyzing contract...'):
+                with st.spinner('Analyzing contract...', show_time=True):
                     analysis_result = pdf_handler.analyze_contract(
-                        contract_text,
+                        st.session_state.contract_text,
                         language.lower()
                     )
-                
-                # Update app usage counter when analyzing a contract
-                new_count = update_counter()
-                st.success(f"Contract analyzed! Total app usage: {new_count}")
+                    st.session_state.analysis_result = analysis_result  # Save result to session state
+                    st.success("Contract analyzed!")
     
     else:  # Paste Text option
         contract_text = st.text_area(
             "Paste your contract text here:",
             height=300,
-            help="Text will be preprocessed to optimize token usage"
+            help="Text will be preprocessed to optimize token usage",
+            value=st.session_state.contract_text  # Use session state for text
         )
         
         if st.button("Analyze Text"):
-            with st.spinner('Analyzing text...'):
+            with st.spinner('Analyzing text...', show_time=True):
                 analysis_result = pdf_handler.analyze_contract(
                     contract_text,
                     language.lower()
                 )
-            
-            # Update app usage counter when analyzing text
-            new_count = update_counter()
-            st.success(f"Text analyzed! Total app usage: {new_count}")
+                st.session_state.analysis_result = analysis_result  # Save result to session state
+                st.success("Text analyzed!")
     
     # Display results
-    if analysis_result:
-        st.markdown("### Analysis Results")
-        st.markdown(analysis_result)
+    if st.session_state.analysis_result:
+        st.markdown("### Analysis Results")  # Use st.markdown for the header
+        st.markdown(st.session_state.analysis_result)  # Render result as Markdown
         
         # Show token usage warning if text is long
-        if len(contract_text) > 100000:
+        if st.session_state.contract_text and len(st.session_state.contract_text) > 100000:
             st.warning("⚠️ Long text detected. Analysis was performed on first portion to optimize costs.")
+        
+        # Add "Clear Contract" button under analysis results
+        if st.button("Clear Contract"):
+            # Clear session state and cache
+            st.session_state.uploaded_file = None
+            st.session_state.contract_text = ""
+            st.session_state.analysis_result = None
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.rerun()  # Rerun the app to reset the UI
+            st.success("Contract and cache cleared successfully!")
 
 if __name__ == "__main__":
     main()
